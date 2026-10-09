@@ -1697,8 +1697,13 @@ function travelindoStart(LIVE){
   var t = setTimeout(function(){ go(null); }, 2500);
   try {
     fetch(CONFIG.livePricesUrl, { cache: 'no-cache' })
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(j){ clearTimeout(t); go(parse(j)); })
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(txt){
+        var j = null;
+        try { j = JSON.parse(txt); } catch (e) { try { j = JSON.parse('[' + txt + ']'); } catch (e2) {} }
+        if (Array.isArray(j)) j = { list: j };
+        clearTimeout(t); go(parse(j));
+      })
       .catch(function(){ clearTimeout(t); go(null); });
   } catch (e) { clearTimeout(t); go(null); }
 })();
