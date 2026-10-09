@@ -686,7 +686,7 @@ var CONFIG = {
     "jang-7days-unlimited": "plan_kROnWsEJnGrqu",
     "jang-15days-unlimited": "plan_6IfLsoebgAUKI"
   },
-  esimLookupUrl: "",
+  esimLookupUrl: "https://hook.eu1.make.com/42yp8vs8n35uxn8d80k1vexam1hnxgaj",
   /* Live prices: a small file that Make.com refreshes once a day from Airalo's live
      recommended prices. Leave as is. If it can't be loaded, the prices below are used. */
   livePricesUrl: "prices.json",
@@ -1475,10 +1475,10 @@ function travelindoStart(LIVE){
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
         if (d && d.qrcode_url) return showEsim(d);
-        if (n < 40) pollTimer = setTimeout(function(){ pollEsim(receiptId, n + 1); }, 3000);
+        if (n < 20) pollTimer = setTimeout(function(){ pollEsim(receiptId, n + 1); }, 4000);
         else $('esimWaitTxt').textContent = 'Your eSIM is taking longer than usual. It will arrive by email, or contact us with your order reference.';
       })
-      .catch(function(){ if (n < 40) pollTimer = setTimeout(function(){ pollEsim(receiptId, n + 1); }, 3000); });
+      .catch(function(){ if (n < 20) pollTimer = setTimeout(function(){ pollEsim(receiptId, n + 1); }, 4000); });
   }
   function showEsim(d){
     stopPolling(); $('esimWait').classList.add('hide'); $('esimReady').classList.remove('hide');
