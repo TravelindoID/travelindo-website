@@ -27,6 +27,7 @@
 
 
 
+
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
@@ -92,6 +93,7 @@ header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--b
 .logo-chip img{height:32px;width:auto;display:block}
 .nav-links{display:flex;align-items:center;gap:24px}
 .nav-links a.link{font-weight:600;font-size:15px;color:var(--ink)}
+#whop-embedded-checkout{background:#fff;border-radius:14px;overflow:hidden}
 .langsel{position:relative;display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 10px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--ink)}
 .langsel select{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-size:14px;font-weight:600;cursor:pointer;padding-right:2px;max-width:9.5em}
 .langsel:focus-within{outline:3px solid #4F56FF;outline-offset:2px}
@@ -1710,7 +1712,7 @@ function travelindoStart(LIVE){
           onComplete: function(p){ if (done) return; if (p && p.result === 'payment') { done = true; paymentDone(p.paymentId || ''); } }
         });
         whopSession.create('checkout').mount(box);
-        setTimeout(function(){ var w = $('payLoading'); if (w) w.remove(); }, 12000);
+        var tries = 0, t = setInterval(function(){ tries++; if (box.querySelector('iframe') || tries > 48) { var w = $('payLoading'); if (w) w.remove(); clearInterval(t); } }, 250);
       } catch (e) { payFail(); }
     });
   }
