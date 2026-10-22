@@ -26,6 +26,7 @@
 
 
 
+
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
@@ -1670,43 +1671,50 @@ function travelindoStart(LIVE){
     var dlg = $('buyDialog'); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
     setTimeout(function(){ if (!$('fEmail').value) $('fEmail').focus(); }, 30);
   }
-  function closeBuy(){ stopPolling(); var dlg = $('buyDialog'); if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  function closeBuy(){ stopPolling(); endWhop(); var dlg = $('buyDialog'); if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
   function showPanel(id){ ['coForm', 'coPay', 'coDone'].forEach(function(x){ $(x).classList.toggle('hide', x !== id); }); }
 
   /* ---- Whop embedded checkout ---- */
   function whopPlan(p){ return (CONFIG.whopPlanIds || {})[p.id] || ''; }
   var whopLoaded = false;
-  function loadWhop(){
-    if (whopLoaded) return; whopLoaded = true;
-    var s = document.createElement('script'); s.async = true; s.defer = true;
-    s.src = 'https://js.whop.com/static/checkout/loader.js';
-    s.onerror = function(){ var w = $('payLoading'); if (w) w.remove(); $('whopMount').style.minHeight = '0'; $('payErr').textContent = 'The secure checkout could not load. Check your connection and try again, or email us.'; whopLoaded = false; };
+  var whopQueue = null, whopSession = null;
+  function loadWhop(cb){
+    if (window.WhopElements) return cb();
+    if (whopQueue) { whopQueue.push(cb); return; }
+    whopQueue = [cb];
+    var s = document.createElement('script'); s.async = true;
+    s.src = 'https://cdn.whop.com/elements/amber/elements.js'; s.setAttribute('data-whop-elements', '');
+    s.onload = function(){ var q = whopQueue; whopQueue = null; q.forEach(function(f){ f(); }); };
+    s.onerror = function(){ whopQueue = null; payFail(); };
     document.head.appendChild(s);
   }
+  function payFail(){ var w = $('payLoading'); if (w) w.remove(); $('whopMount').style.minHeight = '0'; $('payErr').textContent = 'The secure checkout could not load. Check your connection and try again, or email us.'; }
+  function endWhop(){ try { if (whopSession && whopSession.destroy) whopSession.destroy(); } catch (e) {} whopSession = null; }
   function startWhop(planId, email){
     showPanel('coPay'); $('payErr').textContent = '';
-    var mount = $('whopMount'); mount.textContent = ''; mount.style.minHeight = ''; document.querySelectorAll('.co-alt').forEach(function(x){ x.remove(); });
+    var mount = $('whopMount'); endWhop(); mount.textContent = ''; mount.style.minHeight = ''; document.querySelectorAll('.co-alt').forEach(function(x){ x.remove(); });
     var wait = el('p', 'co-wait', 'Loading secure checkout…'); wait.id = 'payLoading'; mount.appendChild(wait);
-    var box = document.createElement('div');
-    box.id = 'whop-embedded-checkout';
-    box.setAttribute('data-whop-checkout-plan-id', planId);
-    box.setAttribute('data-whop-checkout-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
-    box.setAttribute('data-whop-checkout-environment', CONFIG.whopEnvironment === 'sandbox' ? 'sandbox' : 'production');
-    box.setAttribute('data-whop-checkout-skip-redirect', 'true');
-    box.setAttribute('data-whop-checkout-on-complete', 'travelindoCheckoutComplete');
-    box.setAttribute('data-whop-checkout-on-state-change', 'travelindoCheckoutState');
-    if (email) box.setAttribute('data-whop-checkout-prefill-email', email);
-    mount.appendChild(box);
+    var box = document.createElement('div'); box.id = 'whop-embedded-checkout'; mount.appendChild(box);
     var alt = document.createElement('p'); alt.className = 'co-alt'; alt.style.cssText = 'text-align:center;font-size:14px;margin:12px 0 0';
-    var a = document.createElement('a'); a.href = (CONFIG.whopEnvironment === 'sandbox' ? 'https://sandbox.whop.com' : 'https://whop.com') + '/checkout/' + encodeURIComponent(planId) + '/';
+    var a = document.createElement('a'); a.href = 'https://whop.com/checkout/' + encodeURIComponent(planId) + '/';
     a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Payment form not showing? Open secure checkout in a new tab';
     alt.appendChild(a); mount.parentNode.insertBefore(alt, mount.nextSibling);
-    loadWhop();
-    var tries=0, t=setInterval(function(){ tries++; if (mount.querySelector('iframe')) { var w=$('payLoading'); if (w) w.remove(); clearInterval(t); } if (tries>40) clearInterval(t); }, 250);
+    loadWhop(function(){
+      try {
+        var done = false;
+        whopSession = window.WhopElements().checkout.create({
+          plan: planId,
+          buyerEmail: email || '',
+          onReady: function(){ var w = $('payLoading'); if (w) w.remove(); },
+          onError: function(){ payFail(); },
+          onComplete: function(p){ if (done) return; if (p && p.result === 'payment') { done = true; paymentDone(p.paymentId || ''); } }
+        });
+        whopSession.create('checkout').mount(box);
+        setTimeout(function(){ var w = $('payLoading'); if (w) w.remove(); }, 12000);
+      } catch (e) { payFail(); }
+    });
   }
-  window.travelindoCheckoutState = function(state){ if (state && state !== 'loading') { var w = $('payLoading'); if (w) w.remove(); } };
-  window.travelindoCheckoutComplete = function(planId, receiptId){ paymentDone(receiptId || ''); };
-  $('coBack').addEventListener('click', function(){ $('whopMount').textContent = ''; document.querySelectorAll('.co-alt').forEach(function(x){ x.remove(); }); showPanel('coForm'); });
+  $('coBack').addEventListener('click', function(){ endWhop(); $('whopMount').textContent = ''; document.querySelectorAll('.co-alt').forEach(function(x){ x.remove(); }); showPanel('coForm'); });
 
   /* ---- after payment: show the eSIM ---- */
   var pollTimer = null;
