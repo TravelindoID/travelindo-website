@@ -87,12 +87,13 @@ header nav{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 </style>
 <script>window.TL_LANG="zh";</script>
 <script src="/i18n/currency.js"></script>
+<script src="/i18n/picker.js" defer></script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "什么是 eSIM？", "acceptedAnswer": {"@type": "Answer", "text": "eSIM 是内置在手机里的数字 SIM 卡。无需在机场购买实体 SIM 卡，只需扫描二维码，手机就会下载移动数据套餐。您可以在出发前安装，落地后再开启。"}}, {"@type": "Question", "name": "我什么时候能收到 eSIM？", "acceptedAnswer": {"@type": "Answer", "text": "您的二维码和安装步骤将发送至您结账时填写的邮箱，送达时间：2 小时内。邮件由我们的 eSIM 供应商发出，如果没看到，请检查垃圾邮件或促销邮件文件夹。二维码丢了？联系我们，我们会帮您处理。"}}, {"@type": "Question", "name": "套餐什么时候开始计算？", "acceptedAnswer": {"@type": "Answer", "text": "套餐天数通常从 eSIM 在目的地首次连接网络时开始计算，而不是从购买或安装时开始。所以您可以在出发前几天购买并安装。"}}, {"@type": "Question", "name": "可以保留我的 WhatsApp 和本国号码吗？", "acceptedAnswer": {"@type": "Answer", "text": "可以。您的原有 SIM 卡仍留在手机里。eSIM 只负责移动数据，因此 WhatsApp 仍使用您的常用号码，您也仍能用原有 SIM 卡接收短信（本国运营商可能会收取漫游通话和短信费用）。"}}, {"@type": "Question", "name": "包含通话和短信吗？", "acceptedAnswer": {"@type": "Answer", "text": "大多数套餐仅含流量。您仍可通过 WhatsApp、FaceTime 或 Messenger 等应用上网通话和发消息。部分英国、美国套餐以及我们的全球套餐还包含通话分钟数和 SMS。如有包含，会在套餐中注明。"}}, {"@type": "Question", "name": "如何付款？", "acceptedAnswer": {"@type": "Answer", "text": "选择套餐并填写邮箱后，您将在由 Whop 提供支持的安全结账页面付款。所有价格均以美元计。如果您的银行卡是其他币种，银行会自动换算金额。"}}, {"@type": "Question", "name": "我的 eSIM 无法连接，该怎么办？", "acceptedAnswer": {"@type": "Answer", "text": "首先检查 eSIM 线路是否已开启数据漫游，并已选为移动数据线路。然后开关一次飞行模式，或重启手机。如果仍无法使用，请用您的下单邮箱给我们发邮件，我们会帮您处理。"}}, {"@type": "Question", "name": "选择固定流量还是无限流量？", "acceptedAnswer": {"@type": "Answer", "text": "如果您主要使用地图、聊天、邮件和社交媒体，固定流量套餐（例如 3 GB 或 5 GB）最划算。如果您要看视频、经常视频通话或在线办公，无限流量套餐更适合您。如果拿不准，可以先选固定流量套餐：旅途中随时可以再买一个。"}}, {"@type": "Question", "name": "选国家套餐还是地区套餐？", "acceptedAnswer": {"@type": "Answer", "text": "如果只去一个国家，国家套餐通常价格最优。如果要跨境旅行，亚洲、欧洲或全球套餐用一张 eSIM 就能覆盖多个国家，无需在每个国家重新购买套餐。"}}]}</script>
 </head>
 <body>
 <header><div class="wrap"><a class="logo" href="/zh/" aria-label="Travelindo"><img src="/logo.png" alt="Travelindo, by Hotelmurah.com"></a>
 <nav><a href="/zh/esim/">所有目的地</a><a href="/refund.html">退款</a>
-<select class="lsel" aria-label="语言" onchange="location.href=this.value"><option value="/esim/">English</option><option value="/id/esim/">Bahasa Indonesia</option><option value="/zh/esim/" selected>简体中文</option><option value="/fr/esim/">Français</option><option value="/it/esim/">Italiano</option><option value="/ja/esim/">日本語</option><option value="/ko/esim/">한국어</option><option value="/es/esim/">Español</option><option value="/de/esim/">Deutsch</option></select><select class="lsel" id="curSel" aria-label="Currency" style="margin-left:6px"></select></nav></div></header>
+<div data-tl-picker style="margin-left:12px"></div></nav></div></header>
 <main><div class="wrap">
 <p class="crumb"><a href="/zh/">Travelindo</a> › 按目的地选 eSIM</p>
 <h1>按目的地选旅行 eSIM</h1>
