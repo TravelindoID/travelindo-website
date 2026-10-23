@@ -36,7 +36,7 @@
     host.innerHTML = '<button type="button" class="tlp-btn" aria-haspopup="true" aria-expanded="false" aria-label="' + H[0] + ' / ' + H[1] + '">' + GLOBE
       + '<span class="full">' + L[1] + '</span><span class="short">' + L[2] + '</span><span class="sep">·</span><span>' + c + '</span>' + CHEV + '</button>'
       + '<div class="tlp-pop" hidden><div><div class="tlp-h">' + H[0] + '</div><div class="tlp-list" role="list">'
-      + LANGS.map(function(l){ return '<a class="tlp-it" role="listitem" lang="' + l[0] + '" href="' + urlFor(l[0]) + '"' + (l[0] === cur ? ' aria-current="true"' : '') + '><span>' + l[1] + '</span>' + CHECK + '</a>'; }).join('')
+      + LANGS.filter(function(l){ return !window.TL_LANGS || window.TL_LANGS.indexOf(l[0]) > -1; }).map(function(l){ return '<a class="tlp-it" role="listitem" lang="' + l[0] + '" href="' + urlFor(l[0]) + '"' + (l[0] === cur ? ' aria-current="true"' : '') + '><span>' + l[1] + '</span>' + CHECK + '</a>'; }).join('')
       + '</div></div><div><div class="tlp-h">' + H[1] + '</div><div class="tlp-list" role="list">'
       + (T ? T.list : ['USD']).map(function(k){ return '<button type="button" class="tlp-it" role="listitem" data-cur="' + k + '"' + (k === c ? ' aria-current="true"' : '') + '><span>' + k + ' <small>' + SYM[k] + ' · ' + CURNAME[k] + '</small></span>' + CHECK + '</button>'; }).join('')
       + '</div></div></div>';
