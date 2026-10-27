@@ -344,3 +344,7 @@
 /check-data /p/check-data 200
 /id/check-data/ /p/id-check-data 200
 /id/check-data /p/id-check-data 200
+/guide/find-iccid/ /p/guide-find-iccid 200
+/guide/find-iccid /p/guide-find-iccid 200
+/id/guide/find-iccid/ /p/id-guide-find-iccid 200
+/id/guide/find-iccid /p/id-guide-find-iccid 200
