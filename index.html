@@ -537,7 +537,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <div>
           <h3 class="fq">Buying and delivery</h3>
           <details><summary>How do I pay?</summary><p>After you choose a plan and enter your email, you pay on our secure checkout page, powered by Whop. All prices are in US dollars. If your card is in another currency, your bank converts the amount.</p></details>
-          <details><summary>When will I get my eSIM?</summary><p>Your QR code and installation steps arrive by email at the address you use at checkout<span id="deliveryFaq"></span>. The email comes from our eSIM provider, so check your spam or promotions folder if you can't see it. Lost your QR code? Contact us and we'll help you.</p></details>
+          <details><summary>When will I get my eSIM?</summary><p>Your QR code and installation steps arrive by email at the address you use at checkout<span id="deliveryFaq"></span>. The email comes from our eSIM provider, eSIMs Cloud (get@esims.cloud), so check your spam or promotions folder if you can't see it. Lost your QR code? Contact us and we'll help you.</p></details>
           <details><summary>When does my plan start?</summary><p>Your plan's days usually start counting when the eSIM first connects to a network at your destination, not when you buy or install it. So you can buy and install it a few days before you fly.</p></details>
           <details><summary>Can I keep my WhatsApp and home number?</summary><p>Yes. Your regular SIM stays in your phone. The eSIM only handles mobile data, so WhatsApp keeps your usual number, and you can still receive texts on your home SIM (your home carrier may charge for roaming calls and texts).</p></details>
         </div>
@@ -1740,7 +1740,7 @@ function travelindoStart(LIVE){
     var byEmail = !(CONFIG.esimLookupUrl && receiptId);
     document.querySelectorAll('.qrWhere').forEach(function(s){ s.textContent = byEmail ? 'from your email' : 'above, or in your email'; });
     var sp = document.querySelector('#esimWait .spin'); if (sp) sp.classList.toggle('hide', byEmail);
-    if (byEmail) $('doneNote').textContent = 'It will be sent to ' + (email || 'the email you used at checkout') + ' from our eSIM provider. Check your spam or promotions folder too. Questions? Email ' + CONFIG.supportEmail + ' with your order reference.';
+    if (byEmail) $('doneNote').textContent = 'It will be sent to ' + (email || 'the email you used at checkout') + ' from our eSIM provider, eSIMs Cloud (get@esims.cloud). Check your spam or promotions folder too. Questions? Email ' + CONFIG.supportEmail + ' with your order reference.';
     if (byEmail) $('esimWaitTxt').textContent = 'Your eSIM is being prepared and will arrive by email' + (CONFIG.deliveryTime ? ' ' + CONFIG.deliveryTime : '') + '.';
   }
   function pollEsim(receiptId, n){
