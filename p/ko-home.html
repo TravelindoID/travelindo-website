@@ -2,7 +2,11 @@
 <html lang="ko" data-tl-pending>
 <head>
 <meta charset="utf-8">
-<style>html[data-tl-pending] body{visibility:hidden}.kq-m{display:none;margin:16px 0 0;font-weight:600;font-size:15px}.kq-m a{color:var(--link,inherit);text-decoration:underline}@media (max-width:900px){.kq-m{display:block}}</style>
+<style>html[data-tl-pending] body{visibility:hidden}.kq-m{display:none;margin:16px 0 0;font-weight:600;font-size:15px}.kq-m a{color:var(--link,inherit);text-decoration:underline}@media (max-width:900px){.kq-m{display:block}}.nav-links .menu-btn,.mnav{display:none}.menu-btn .mi-close{display:none}.menu-btn[aria-expanded=true] .mi-open{display:none}.menu-btn[aria-expanded=true] .mi-close{display:block}
+@media (max-width:900px){.nav-links .menu-btn{display:inline-flex}.nav-links #themeBtn{display:none}.mnav:not([hidden]){display:block;border-top:1px solid var(--border);padding:4px 14px 10px;max-width:1180px;margin:0 auto}}
+.mnav a,.mnav button{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:14px 6px;font:inherit;font-weight:600;font-size:16px;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--border);text-align:left;cursor:pointer;text-decoration:none}
+.mnav > :last-child{border-bottom:0}.mnav button > span{display:inline-flex;align-items:center;gap:10px}.mnav svg{flex:none;opacity:.75}
+:root[data-theme=dark] .mnav .t-d,:root:not([data-theme=dark]) .mnav .t-l{display:none}</style>
 <script>window.TL_LANG="ko";</script>
 <script src="/i18n/ko.js"></script>
 <script src="/i18n/engine.js"></script>
@@ -412,9 +416,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
       </button>
+      <button class="theme menu-btn" type="button" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="mnav">
+        <svg class="mi-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="mi-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
       <a class="btn sm" href="#plans">Get your eSIM</a>
     </nav>
   </div>
+  <nav class="mnav" id="mnav" aria-label="Menu" hidden>
+    <a href="#plans">Destinations</a>
+    <a href="#how">How it works</a>
+    <a href="#faq">FAQ</a>
+    <a href="/check-data/">Check my data</a>
+    <button type="button" id="mTheme"><span class="t-d"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Dark mode</span></span><span class="t-l"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Light mode</span></span></button>
+  </nav>
 </header>
 
 <main id="top">
@@ -632,6 +647,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <a id="appleLink" class="btn ghost hide" href="#" target="_blank" rel="noopener">On this iPhone? Tap to install</a>
         </div>
         <p class="qr-tip">Buying on the phone you'll use? Download the QR code, or send it to another device and scan it from there.</p>
+        <p class="qr-tip hide" id="iccidNote"><span id="iccidTxt"></span> <a href="/check-data/">Check my data</a></p>
         <details class="manual"><summary>Can't scan? Enter it manually</summary><p>SM-DP+ address: <code id="lpaTxt"></code></p><p>Activation code: <code id="matchTxt"></code></p></details>
       </div>
     </div>
@@ -1769,6 +1785,7 @@ function travelindoStart(LIVE){
     else { dl.href = d.qrcode_url; dl.onclick = function(e){ e.preventDefault(); downloadUrl(d.qrcode_url, dl.getAttribute('download')); }; }
     $('lpaTxt').textContent = d.lpa || '—'; $('matchTxt').textContent = d.matching_id || '—';
     var a = $('appleLink'); if (d.direct_apple_installation_url) { a.href = d.direct_apple_installation_url; a.classList.remove('hide'); } else a.classList.add('hide');
+    var ic = String(d.iccid || '').replace(/\D/g, ''); if (ic.length >= 6) { $('iccidTxt').textContent = 'Your eSIM number (ICCID) ends in ' + ic.slice(-6) + '. Save it so you can check your data later.'; $('iccidNote').classList.remove('hide'); }
   }
   /* ---- QR code image for download (made in the browser from the eSIM activation code) ---- */
   function qrDataUrl(text){
@@ -1990,5 +2007,12 @@ function travelindoStart(LIVE){
 <script>
 (function(){var T=window.TLC;if(!T)return;T.ready.then(function(){if(!T.active())return;document.querySelectorAll('.curNote').forEach(function(p){p.textContent='Prices shown in '+T.cur()+' are estimates at today\u2019s exchange rate. Plans are priced in USD and the exact amount is shown at checkout.';p.classList.remove('hide')});});})();
 </script>
+<script>(function(){var b=document.getElementById('menuBtn'),m=document.getElementById('mnav');if(!b||!m)return;
+function set(o){m.hidden=!o;b.setAttribute('aria-expanded',o?'true':'false');}
+b.addEventListener('click',function(){set(m.hidden);});
+m.addEventListener('click',function(e){if(e.target.closest('a'))set(false);});
+document.getElementById('mTheme').addEventListener('click',function(){document.getElementById('themeBtn').click();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+window.addEventListener('resize',function(){if(innerWidth>900)set(false);});})();</script>
 </body>
 </html>
