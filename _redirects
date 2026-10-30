@@ -66,8 +66,8 @@
 /id/esim/south-korea /p/id-esim-south-korea 200
 /id/esim/japan/ /p/id-esim-japan 200
 /id/esim/japan /p/id-esim-japan 200
-/id/esim/indonesia/ /p/id-esim-indonesia 200
-/id/esim/indonesia /p/id-esim-indonesia 200
+/id/esim/indonesia/ /esim/indonesia/ 301
+/id/esim/indonesia /esim/indonesia/ 301
 /id/esim/asia/ /p/id-esim-asia 200
 /id/esim/asia /p/id-esim-asia 200
 /id/esim/france/ /p/id-esim-france 200
