@@ -124,6 +124,7 @@ function mb(v){v=parseFloat(v)||0;return v>=1024?(Math.round(v/102.4)/10).toLoca
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 var f=document.getElementById('ck'),out=document.getElementById('ckOut'),btn=document.getElementById('ckBtn'),lab=btn.textContent;
 function msg(t){out.innerHTML='<p class="msg">'+esc(t)+'</p>'}
+try{var sv=JSON.parse(localStorage.getItem('tl_esim')||'null');if(sv){var a=document.getElementById('ckEmail'),b=document.getElementById('ckLast');if(sv.e&&!a.value)a.value=sv.e;if(sv.l&&!b.value)b.value=sv.l;}}catch(x){}
 f.addEventListener('submit',function(e){e.preventDefault();
  var em=document.getElementById('ckEmail').value.trim(),l6=document.getElementById('ckLast').value.replace(/\D/g,'');
  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)||l6.length!==6){msg(T.bad);return}

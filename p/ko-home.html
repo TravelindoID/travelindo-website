@@ -356,6 +356,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .done-card h4{margin:0 0 12px;font-size:17px}
 .qr-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .qr-actions .btn{flex:1 1 180px;text-align:center}
+.iccid-box{border:2px solid var(--brand,var(--ink));border-radius:14px;padding:14px;margin:14px 0 4px;text-align:center}.iccid-lbl{margin:0 0 6px;font-weight:700;font-size:15px}.iccid-num{margin:0 0 8px}.iccid-num code{font-size:19px;letter-spacing:.04em;word-break:break-all;font-variant-numeric:tabular-nums;background:none;padding:0}.iccid-num code b{text-decoration:underline;text-underline-offset:4px}.iccid-help{color:var(--muted);font-size:13.5px;margin:0 0 10px}.guide-links{font-size:14px;margin:12px 0 0}
 .qr-tip{color:var(--muted);font-size:13.5px;margin:10px 0 4px;text-align:center}
 .os-tabs{display:flex;gap:6px;background:var(--tint);padding:4px;border-radius:12px;margin:0 0 12px}
 .os-tab{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:700;padding:9px 10px;border-radius:9px;cursor:pointer;min-height:40px}
@@ -647,7 +648,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
           <a id="appleLink" class="btn ghost hide" href="#" target="_blank" rel="noopener">On this iPhone? Tap to install</a>
         </div>
         <p class="qr-tip">Buying on the phone you'll use? Download the QR code, or send it to another device and scan it from there.</p>
-        <p class="qr-tip hide" id="iccidNote"><span id="iccidTxt"></span> <a href="/check-data/">Check my data</a></p>
+        <div class="iccid-box hide" id="iccidNote"><p class="iccid-lbl">Your eSIM number (ICCID)</p><p class="iccid-num"><code id="iccidFull"></code></p><p class="iccid-help">Save this number or take a screenshot. To check your remaining data later, you'll need the last 6 digits and your email.</p><div class="qr-actions"><button type="button" class="btn ghost" id="iccidCopy">Copy number</button><a class="btn" href="/check-data/">Check my data</a></div></div>
         <details class="manual"><summary>Can't scan? Enter it manually</summary><p>SM-DP+ address: <code id="lpaTxt"></code></p><p>Activation code: <code id="matchTxt"></code></p></details>
       </div>
     </div>
@@ -677,6 +678,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
         <li>Don't delete the eSIM from your phone until your trip is over.</li>
         <li>Menu names vary slightly by phone brand and software version.</li>
       </ul>
+      <p class="guide-links">Full step-by-step guides: <a href="/guide/install-esim-iphone/" target="_blank" rel="noopener">iPhone</a> · <a href="/guide/install-esim-android/" target="_blank" rel="noopener">Android</a></p>
     </div>
     <p class="done-note" id="doneNote"></p>
     <button class="btn" type="button" data-close>Done</button>
@@ -1732,8 +1734,10 @@ function travelindoStart(LIVE){
     loadWhop(function(){
       try {
         var done = false;
+        try { sessionStorage.setItem('tl_pending', JSON.stringify({ s: sel.d.slug, p: sel.p.id, e: email || '' })); } catch (e) {}
         whopSession = window.WhopElements().checkout.create({
           plan: planId,
+          returnUrl: location.origin + location.pathname,
           buyerEmail: email || '',
           onReady: function(){ var w = $('payLoading'); if (w) w.remove(); },
           onError: function(){ payFail(); },
@@ -1785,7 +1789,14 @@ function travelindoStart(LIVE){
     else { dl.href = d.qrcode_url; dl.onclick = function(e){ e.preventDefault(); downloadUrl(d.qrcode_url, dl.getAttribute('download')); }; }
     $('lpaTxt').textContent = d.lpa || '—'; $('matchTxt').textContent = d.matching_id || '—';
     var a = $('appleLink'); if (d.direct_apple_installation_url) { a.href = d.direct_apple_installation_url; a.classList.remove('hide'); } else a.classList.add('hide');
-    var ic = String(d.iccid || '').replace(/\D/g, ''); if (ic.length >= 6) { $('iccidTxt').textContent = 'Your eSIM number (ICCID) ends in ' + ic.slice(-6) + '. Save it so you can check your data later.'; $('iccidNote').classList.remove('hide'); }
+    var ic = String(d.iccid || '').replace(/\D/g, '');
+    if (ic.length >= 6) {
+      var cf = $('iccidFull'); cf.textContent = ic.slice(0, -6); cf.appendChild(el('b', null, ic.slice(-6)));
+      $('iccidCopy').onclick = function(){ var b = this, ok = function(){ b.textContent = 'Copied'; setTimeout(function(){ b.textContent = 'Copy number'; }, 2000); };
+        try { navigator.clipboard.writeText(ic).then(ok, function(){}); } catch (e) {} };
+      $('iccidNote').classList.remove('hide');
+      try { localStorage.setItem('tl_esim', JSON.stringify({ e: (sel && sel.details && sel.details.email) || '', l: ic.slice(-6) })); } catch (e) {}
+    }
   }
   /* ---- QR code image for download (made in the browser from the eSIM activation code) ---- */
   function qrDataUrl(text){
@@ -1977,6 +1988,24 @@ function travelindoStart(LIVE){
 
   $('year').textContent = new Date().getFullYear();
   renderGrid(); route();
+  /* ---- back from an off-site payment step (bank page / 3-D Secure) ---- */
+  (function(){
+    var q = new URLSearchParams(location.search), pay = q.get('payment'), st = (q.get('status') || '').toLowerCase();
+    if (!pay && !st) return;
+    var pend = null; try { pend = JSON.parse(sessionStorage.getItem('tl_pending') || 'null'); } catch (e) {}
+    q.delete('payment'); q.delete('status');
+    try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
+    var d = pend && bySlug[pend.s], p = d && d.packages.filter(function(x){ return x.id === pend.p; })[0];
+    if (st === 'failed' || st === 'canceled' || st === 'cancelled') {
+      if (d && p) { openBuy(d, p); if (pend.e) $('fEmail').value = pend.e; $('coErr').textContent = 'Your payment wasn\'t completed. You can try again.'; }
+      return;
+    }
+    if (!pay) return;
+    try { sessionStorage.removeItem('tl_pending'); } catch (e) {}
+    sel = d && p ? { d: d, p: p, details: { email: pend.e } } : null;
+    var dlg = $('buyDialog'); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+    paymentDone(pay);
+  })();
 }
 (function(){
   var started = false;
