@@ -17,7 +17,7 @@ export async function onRequestGet({ request, env }) {
   if (f === 'no_iccid') where.push(`(iccid IS NULL OR iccid = '')`);
   if (f === 'not_active') where.push(`esim_status = 'NOT_ACTIVE'`);
   if (f === 'active') where.push(`esim_status = 'ACTIVE'`);
-  if (f === 'qr_not_shown') where.push(`qr_shown_at IS NULL`);
+  if (f === 'qr_not_shown') where.push(`qr_shown_at IS NULL AND created_at >= '2026-11-12T09:30:00Z'`);
   const sql = `SELECT * FROM orders ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY created_at DESC LIMIT ?`;
   const { results } = await env.DB.prepare(sql).bind(...args, limit).all();
   const tot = await env.DB.prepare(`SELECT COUNT(*) n, SUM(price_paid) revenue,
