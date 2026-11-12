@@ -1773,7 +1773,7 @@ function travelindoStart(LIVE){
     fetch(url, { headers: { Accept: 'application/json' } })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
-        if (d && d.qrcode_url) return showEsim(d);
+        if (d && d.qrcode_url) { try { fetch('/api/qr-shown', { method: 'POST', body: new URLSearchParams({ payment_id: receiptId }), keepalive: true }).catch(function(){}); } catch (e) {} return showEsim(d); }
         if (n < 20) pollTimer = setTimeout(function(){ pollEsim(receiptId, n + 1); }, 4000);
         else $('esimWaitTxt').textContent = 'Your eSIM is taking longer than usual. It will arrive by email, or contact us with your order reference.';
       })
