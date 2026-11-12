@@ -38,7 +38,7 @@ dialog button{font:inherit;border:1px solid var(--border);background:var(--bg);c
 </div>
 <div class="bar">
  <input id="q" type="search" placeholder="Search email, payment ID, ICCID, Airalo order, plan…">
- <select id="f"><option value="">All orders</option><option value="failed">Airalo failed</option><option value="no_iccid">No ICCID yet</option><option value="qr_not_shown">QR not shown</option><option value="not_active">Not installed yet</option><option value="active">Active</option></select>
+ <select id="f"><option value="">All orders</option><option value="failed">Airalo failed</option><option value="no_iccid">No ICCID yet</option><option value="qr_not_shown">QR not shown (since tracking began)</option><option value="not_active">Not installed yet</option><option value="active">Active</option></select>
  <button id="go">Search</button><button id="csv">Download CSV</button>
 </div>
 <div class="wrap"><table><thead><tr>
@@ -47,13 +47,13 @@ dialog button{font:inherit;border:1px solid var(--border);background:var(--bg);c
 </main>
 <dialog id="dlg"><div class="hd"><b id="dTitle">Order</b><button id="dClose">Close</button></div><dl id="dBody"></dl></dialog>
 <script>
-var items=[];
+var items=[];var QR_SINCE='2026-11-12T09:30:00Z';
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function dt(s){if(!s)return '';var d=new Date(s);if(isNaN(d))return esc(s);return d.toLocaleString('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
 function money(v,c){if(v==null)return '';return (c&&c!=='USD'?c+' ':'$')+Number(v).toFixed(2)}
 function mb(v){if(v==null)return '';return v>=1024?(v/1024).toFixed(2)+' GB':Math.round(v)+' MB'}
-function tagAiralo(r){if(r.airalo_result==='ok')return '<span class="tag ok">Created</span>';if(r.airalo_result==='failed')return '<span class="tag bad">Failed</span>';return '<span class="tag warn">Unknown</span>'}
+function tagAiralo(r){if(r.airalo_result==='pending')return '<span class="tag warn">Not confirmed</span>';if(r.airalo_result==='ok')return '<span class="tag ok">Created</span>';if(r.airalo_result==='failed')return '<span class="tag bad">Failed</span>';return '<span class="tag warn">Unknown</span>'}
 function tagStatus(s){if(!s)return '<span class="dim">Not checked</span>';var m={ACTIVE:'ok',NOT_ACTIVE:'warn',FINISHED:'dim',EXPIRED:'dim'};var t={ACTIVE:'Active',NOT_ACTIVE:'Not installed',FINISHED:'Used up',EXPIRED:'Expired'};return '<span class="tag '+(m[s]||'warn')+'">'+esc(t[s]||s)+'</span>'}
 function load(){
   var u='/api/admin-orders?q='+encodeURIComponent($('q').value)+'&filter='+encodeURIComponent($('f').value);
@@ -61,7 +61,7 @@ function load(){
     items=d.items||[];var t=d.totals||{};
     $('cN').textContent=t.n||0;$('cRev').textContent=t.revenue!=null?'$'+Number(t.revenue).toFixed(2):'–';$('cOk').textContent=t.ok||0;$('cFail').textContent=t.failed||0;$('cQr').textContent=t.qr_shown||0;$('cAct').textContent=t.active||0;
     $('sub').textContent='Updated '+new Date().toLocaleTimeString('en-GB')+' · showing '+items.length;
-    $('rows').innerHTML=items.map(function(r,i){return '<tr data-i="'+i+'"><td>'+dt(r.created_at)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.plan_name||r.package_id)+'</td><td class="num">'+money(r.price_paid,r.currency)+'</td><td>'+tagAiralo(r)+'</td><td>'+esc(r.airalo_order_code||r.airalo_order_id)+'</td><td>'+esc(r.iccid)+'</td><td>'+esc(r.email_requested_to)+(r.email_cc?' <span class="dim">+cc</span>':'')+'</td><td>'+(r.qr_shown_at?'<span class="tag ok">Yes</span> <span class="dim">'+dt(r.qr_shown_at)+'</span>':'<span class="dim">No</span>')+'</td><td>'+tagStatus(r.esim_status)+'</td><td class="num">'+(r.unlimited?'Unlimited':mb(r.data_remaining_mb))+'</td><td>'+dt(r.expires_at)+'</td></tr>'}).join('');
+    $('rows').innerHTML=items.map(function(r,i){return '<tr data-i="'+i+'"><td>'+dt(r.created_at)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.plan_name||r.package_id)+'</td><td class="num">'+money(r.price_paid,r.currency)+'</td><td>'+tagAiralo(r)+'</td><td>'+esc(r.airalo_order_code||r.airalo_order_id)+'</td><td>'+esc(r.iccid)+'</td><td>'+esc(r.email_requested_to)+(r.email_cc?' <span class="dim">+cc</span>':'')+'</td><td>'+(r.qr_shown_at?'<span class="tag ok">Yes</span> <span class="dim">'+dt(r.qr_shown_at)+'</span>':(String(r.created_at||'')<QR_SINCE?'<span class="dim">Not tracked</span>':'<span class="tag warn">Not shown</span>'))+'</td><td>'+tagStatus(r.esim_status)+'</td><td class="num">'+(r.unlimited?'Unlimited':mb(r.data_remaining_mb))+'</td><td>'+dt(r.expires_at)+'</td></tr>'}).join('');
     $('empty').hidden=items.length>0;
   }).catch(function(){$('sub').textContent='Could not load orders.'});
 }
