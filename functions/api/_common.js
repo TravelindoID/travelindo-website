@@ -60,11 +60,17 @@ export async function sign(env, text) {
 
 // ---- Email via Make (Scenario B "send_email" route, sends from cs@hotelmurah.com) ----
 export const MAKE_HOOK = 'https://hook.eu1.make.com/42yp8vs8n35uxn8d80k1vexam1hnxgaj';
-export const OWNER_EMAIL = 'hotelmurahcomid@gmail.com';
+// Who receives the approve/reject emails (one email to each address).
+export const OWNER_EMAIL = ['cs@hotelmurah.com', 'ayya.yurizal2006@gmail.com'];
 export async function sendEmail(env, to, subject, html) {
-  const r = await fetch(MAKE_HOOK, { method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ action: 'send_email', key: env.INGEST_KEY, to, subject, html }) });
-  return r.ok;
+  const list = Array.isArray(to) ? to : [to];
+  let ok = true;
+  for (const addr of list) {
+    const r = await fetch(MAKE_HOOK, { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'send_email', key: env.INGEST_KEY, to: addr, subject, html }) });
+    ok = ok && r.ok;
+  }
+  return ok;
 }
 
 export const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
