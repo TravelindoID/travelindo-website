@@ -14,6 +14,7 @@ export async function onRequestGet({ request, env }) {
     for (let i = 0; i < 8; i++) args.push('%' + q + '%');
   }
   if (f === 'failed') where.push(`airalo_result = 'failed'`);
+  if (f === 'awaiting') where.push(`airalo_result = 'awaiting_approval'`);
   if (f === 'no_iccid') where.push(`(iccid IS NULL OR iccid = '')`);
   if (f === 'not_active') where.push(`esim_status = 'NOT_ACTIVE'`);
   if (f === 'active') where.push(`esim_status = 'ACTIVE'`);

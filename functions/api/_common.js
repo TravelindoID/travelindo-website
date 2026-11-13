@@ -35,11 +35,72 @@ export const SCHEMA = [
   `CREATE INDEX IF NOT EXISTS idx_orders_email ON orders(email)`
 ];
 
+const EXTRA_COLS = ['approval_state TEXT', 'approval_at TEXT', 'notified_at TEXT', 'customer_name TEXT', 'card TEXT', 'billing_country TEXT', 'risk_score REAL'];
 let ready = false;
 export async function ensureSchema(db) {
   if (ready) return;
   await db.batch(SCHEMA.map(s => db.prepare(s)));
+  for (const c of EXTRA_COLS) { try { await db.prepare('ALTER TABLE orders ADD COLUMN ' + c).run(); } catch (e) { /* already there */ } }
   ready = true;
+}
+
+// ---- Whop API (key lives only in the Cloudflare secret WHOP_API_KEY) ----
+export async function whop(env, path, method = 'GET') {
+  const r = await fetch('https://api.whop.com/api/v1' + path, { method, headers: { Authorization: 'Bearer ' + env.WHOP_API_KEY, Accept: 'application/json' } });
+  let body = null; try { body = await r.json(); } catch (e) {}
+  return { ok: r.ok, status: r.status, body };
+}
+
+// ---- One-click approval links: HMAC of the payment ID, signed with INGEST_KEY ----
+export async function sign(env, text) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(env.INGEST_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('approve:' + text));
+  return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+}
+
+// ---- Email via Make (Scenario B "send_email" route, sends from cs@hotelmurah.com) ----
+export const MAKE_HOOK = 'https://hook.eu1.make.com/42yp8vs8n35uxn8d80k1vexam1hnxgaj';
+export const OWNER_EMAIL = 'hotelmurahcomid@gmail.com';
+export async function sendEmail(env, to, subject, html) {
+  const r = await fetch(MAKE_HOOK, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ action: 'send_email', key: env.INGEST_KEY, to, subject, html }) });
+  return r.ok;
+}
+
+export const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const PAY_RE = /^pay_[A-Za-z0-9]{6,40}$/;
+
+// Readable summary rows of a Whop payment object.
+export function paymentRows(p) {
+  const a = p.billing_address || {};
+  const money = (v, c) => v == null ? '' : Number(v).toFixed(2) + ' ' + String(c || '').toUpperCase();
+  return [
+    ['Payment ID', p.id],
+    ['Status', [p.status, p.substatus].filter(Boolean).join(' / ')],
+    ['Product', p.product && p.product.title],
+    ['Plan ID', p.plan && p.plan.id],
+    ['Amount (USD)', p.usd_total != null ? '$' + Number(p.usd_total).toFixed(2) : ''],
+    ['Amount charged in', money(p.total, p.currency)],
+    ['Customer name', p.user && p.user.name],
+    ['Customer email', p.user && p.user.email],
+    ['Whop username', p.user && p.user.username],
+    ['Phone', p.customer_phone || (p.member && p.member.phone) || ''],
+    ['Card', [p.card_brand, p.card_last4 ? '\u2022\u2022' + p.card_last4 : '', p.card_exp_month ? 'exp ' + p.card_exp_month + '/' + p.card_exp_year : ''].filter(Boolean).join(' ')],
+    ['Payment method', p.payment_method_type],
+    ['Name on billing address', a.name],
+    ['Billing address', [a.line1, a.line2, a.city, a.state, a.postal_code, a.country].filter(Boolean).join(', ')],
+    ['Billing country', a.country],
+    ['3-D Secure verified', p.three_ds_verified === true ? 'Yes' : p.three_ds_verified === false ? 'No' : ''],
+    ['Whop risk score', p.risk_score],
+    ['Risk signals', p.risk_signals ? JSON.stringify(p.risk_signals) : ''],
+    ['Card checks', p.verification_checks ? Object.entries(p.verification_checks).map(([k, v]) => k + ': ' + v).join(', ') : ''],
+    ['Created', p.created_at],
+    ['Auto-capture at', p.auto_capture_at || '']
+  ].filter(r => r[1] !== undefined && r[1] !== null && r[1] !== '');
+}
+export function rowsHtml(rows) {
+  return '<table cellpadding="6" style="border-collapse:collapse;font:14px Arial,sans-serif">' +
+    rows.map(r => '<tr><td style="color:#555;border-bottom:1px solid #eee;white-space:nowrap">' + esc(r[0]) + '</td><td style="border-bottom:1px solid #eee"><b>' + esc(r[1]) + '</b></td></tr>').join('') + '</table>';
 }
 
 export function json(data, status = 200, extra = {}) {
