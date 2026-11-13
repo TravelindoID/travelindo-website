@@ -1779,6 +1779,8 @@ function travelindoStart(LIVE){
     $('doneTitle').textContent = 'We need to confirm this order first';
     var sp = document.querySelector('#esimWait .spin'); if (sp) sp.classList.add('hide');
     $('esimWait').classList.remove('hide'); $('esimReady').classList.add('hide');
+    var tk = document.querySelector('#coDone .done-tick'); if (tk) { tk.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'; tk.style.background = '#F79009'; }
+    var cards = document.querySelectorAll('#coDone .done-card'); if (cards[0]) { var h4 = cards[0].querySelector('h4'); if (h4) h4.textContent = 'Waiting for confirmation'; } if (cards[1]) cards[1].classList.add('hide');
     $('esimWaitTxt').textContent = 'Your card has not been charged yet. The amount is only reserved until we confirm your purchase. Once it is approved, your eSIM QR code will be sent to the email you used at checkout. If we can\'t approve it, the reservation is released and you won\'t be charged.';
   }
   function pollEsim(receiptId, n){
