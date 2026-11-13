@@ -633,7 +633,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   <div class="co-body hide" id="coDone" aria-live="polite">
     <div class="done-hero">
       <span class="done-tick" aria-hidden="true">&#10003;</span>
-      <h3>Thank you! Payment received</h3>
+      <h3 id="doneTitle">Thank you! Payment received</h3>
       <p class="done-plan" id="donePlan"></p>
       <p class="done-ref">Order reference: <b id="doneRef"></b></p>
     </div>
@@ -1761,12 +1761,25 @@ function travelindoStart(LIVE){
     $('esimReady').classList.add('hide'); $('esimWait').classList.remove('hide');
     var email = sel && sel.details && sel.details.email;
     $('doneNote').textContent = 'Your QR code is also sent by email to ' + (email || 'the email you used at checkout') + '. Questions? Email ' + CONFIG.supportEmail + ' with your order reference.';
-    if (CONFIG.esimLookupUrl && receiptId) pollEsim(receiptId, 0);
+    if (CONFIG.esimLookupUrl && receiptId) holdCheck(receiptId);
     var byEmail = !(CONFIG.esimLookupUrl && receiptId);
     document.querySelectorAll('.qrWhere').forEach(function(s){ s.textContent = byEmail ? 'from your email' : 'above, or in your email'; });
     var sp = document.querySelector('#esimWait .spin'); if (sp) sp.classList.toggle('hide', byEmail);
     if (byEmail) $('doneNote').textContent = 'It will be sent to ' + (email || 'the email you used at checkout') + ' from our eSIM provider, eSIMs Cloud (get@esims.cloud). Check your spam or promotions folder too. Questions? Email ' + CONFIG.supportEmail + ' with your order reference.';
     if (byEmail) $('esimWaitTxt').textContent = 'Your eSIM is being prepared and will arrive by email' + (CONFIG.deliveryTime ? ' ' + CONFIG.deliveryTime : '') + '.';
+  }
+  function holdCheck(receiptId){
+    fetch('/api/hold-check', { method: 'POST', body: new URLSearchParams({ payment_id: receiptId }) })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ if (d && d.state === 'awaiting_approval') showHeld(); else pollEsim(receiptId, 0); })
+      .catch(function(){ pollEsim(receiptId, 0); });
+  }
+  function showHeld(){
+    stopPolling();
+    $('doneTitle').textContent = 'We need to confirm this order first';
+    var sp = document.querySelector('#esimWait .spin'); if (sp) sp.classList.add('hide');
+    $('esimWait').classList.remove('hide'); $('esimReady').classList.add('hide');
+    $('esimWaitTxt').textContent = 'Your card has not been charged yet. The amount is only reserved until we confirm your purchase. Once it is approved, your eSIM QR code will be sent to the email you used at checkout. If we can\'t approve it, the reservation is released and you won\'t be charged.';
   }
   function pollEsim(receiptId, n){
     var url = CONFIG.esimLookupUrl + (CONFIG.esimLookupUrl.indexOf('?') > -1 ? '&' : '?') + 'receipt=' + encodeURIComponent(receiptId);
