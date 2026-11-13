@@ -38,7 +38,7 @@ dialog button{font:inherit;border:1px solid var(--border);background:var(--bg);c
 </div>
 <div class="bar">
  <input id="q" type="search" placeholder="Search email, payment ID, ICCID, Airalo order, plan…">
- <select id="f"><option value="">All orders</option><option value="failed">Airalo failed</option><option value="no_iccid">No ICCID yet</option><option value="qr_not_shown">QR not shown (since tracking began)</option><option value="not_active">Not installed yet</option><option value="active">Active</option></select>
+ <select id="f"><option value="">All orders</option><option value="awaiting">Waiting for approval</option><option value="failed">Airalo failed</option><option value="no_iccid">No ICCID yet</option><option value="qr_not_shown">QR not shown (since tracking began)</option><option value="not_active">Not installed yet</option><option value="active">Active</option></select>
  <button id="go">Search</button><button id="csv">Download CSV</button>
 </div>
 <div class="wrap"><table><thead><tr>
@@ -53,7 +53,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
 function dt(s){if(!s)return '';var d=new Date(s);if(isNaN(d))return esc(s);return d.toLocaleString('en-GB',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
 function money(v,c){if(v==null)return '';return (c&&c!=='USD'?c+' ':'$')+Number(v).toFixed(2)}
 function mb(v){if(v==null)return '';return v>=1024?(v/1024).toFixed(2)+' GB':Math.round(v)+' MB'}
-function tagAiralo(r){if(r.airalo_result==='pending')return '<span class="tag warn">Not confirmed</span>';if(r.airalo_result==='ok')return '<span class="tag ok">Created</span>';if(r.airalo_result==='failed')return '<span class="tag bad">Failed</span>';return '<span class="tag warn">Unknown</span>'}
+function tagAiralo(r){if(r.airalo_result==='awaiting_approval')return '<span class="tag warn">Waiting for your approval</span>';if(r.airalo_result==='rejected')return '<span class="tag bad">Rejected by you</span>';if(r.airalo_result==='pending')return '<span class="tag warn">Not confirmed</span>';if(r.airalo_result==='ok')return '<span class="tag ok">Created</span>';if(r.airalo_result==='failed')return '<span class="tag bad">Failed</span>';return '<span class="tag warn">Unknown</span>'}
 function tagStatus(s){if(!s)return '<span class="dim">Not checked</span>';var m={ACTIVE:'ok',NOT_ACTIVE:'warn',FINISHED:'dim',EXPIRED:'dim'};var t={ACTIVE:'Active',NOT_ACTIVE:'Not installed',FINISHED:'Used up',EXPIRED:'Expired'};return '<span class="tag '+(m[s]||'warn')+'">'+esc(t[s]||s)+'</span>'}
 function load(){
   var u='/api/admin-orders?q='+encodeURIComponent($('q').value)+'&filter='+encodeURIComponent($('f').value);
