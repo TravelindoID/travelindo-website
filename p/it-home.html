@@ -401,6 +401,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 @media (max-width:345px){.nav-links .btn.sm{display:none}}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.dest,.plan{transition:none}}
 </style>
+<script src="/tl-pixel.js" defer></script>
 </head>
 <body>
 
@@ -1689,8 +1690,10 @@ function travelindoStart(LIVE){
 
   /* ---- checkout (one screen) ---- */
   var sel = null;
+  var tlAd = function(x){ return { value: Number(x.p.price), currency: 'USD', content_ids: [String(x.p.id)], content_name: x.d.name + ' ' + x.p.main, content_type: 'product', num_items: 1 }; };
   function openBuy(d, p){
     sel = { d: d, p: p };
+    if (window.tlTrack) tlTrack('AddToCart', tlAd(sel));
     $('coFlag').textContent = ''; $('coFlag').appendChild(flagImg(d));
     $('coTitle').textContent = d.name + ' · ' + p.main;
     $('coSub').textContent = p.days + ' days' + (p.extra ? ' · + ' + p.extra : '');
@@ -1724,6 +1727,7 @@ function travelindoStart(LIVE){
   function endWhop(){ try { if (whopSession && whopSession.destroy) whopSession.destroy(); } catch (e) {} whopSession = null; }
   function startWhop(planId, email){
     showPanel('coPay'); $('payErr').textContent = '';
+    if (window.tlTrack && sel) tlTrack('InitiateCheckout', tlAd(sel));
     var mount = $('whopMount'); endWhop(); mount.textContent = ''; mount.style.minHeight = ''; document.querySelectorAll('.co-alt').forEach(function(x){ x.remove(); });
     var wait = el('p', 'co-wait', 'Loading secure checkout…'); wait.id = 'payLoading'; mount.appendChild(wait);
     var box = document.createElement('div'); box.id = 'whop-embedded-checkout'; mount.appendChild(box);
@@ -1755,6 +1759,7 @@ function travelindoStart(LIVE){
   function stopPolling(){ if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; } }
   function paymentDone(receiptId){
     showPanel('coDone'); clearDetailsAfterPay();
+    if (window.tlTrack && sel && sel.p && receiptId) { var tk = 'tl_px_' + receiptId, seen = null; try { seen = localStorage.getItem(tk); localStorage.setItem(tk, '1'); } catch (e) {} if (!seen) tlTrack('Purchase', tlAd(sel), receiptId); }
     $('doneRef').textContent = receiptId || '—';
     $('donePlan').textContent = sel && sel.p ? (sel.d.name + ' eSIM · ' + (sel.p.type === 'unlimited' ? 'Unlimited data' : sel.p.data) + ' · ' + sel.p.days + ' days · ' + money(sel.p.price)) : '';
     $('qrDownload').setAttribute('download', 'travelindo-esim-' + String(receiptId || 'qr').replace(/[^A-Za-z0-9_-]/g, '') + '.png');
