@@ -1,0 +1,1 @@
+export async function onRequest(c){const r=await c.next();const ct=r.headers.get("content-type")||"";if(!ct.includes("text/html"))return r;return new HTMLRewriter().on('a[href*="/esim/indonesia"] span[data-usd]',{element(e){e.setAttribute("data-usd","2.99");e.setInnerContent("$2.99")}}).transform(r)}
